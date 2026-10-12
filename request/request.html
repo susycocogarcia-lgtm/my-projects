@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>request | projectsa.ink</title>
+    <link rel="icon" href="coolprofile.jpg">
+</head>
+<body>
+    <div class="requestbox">
+        <h1>enter code</h1>
+        <p>make sure your device is connected to the same wifi network</p>
+        <p>enter your six digit code</p>
+        <form>
+            <input required placeholder="xxxxxx" type="number" maxlength="6" oninput="if(this.value.length > this.maxLength) this.value = this.value.slice(0, this.maxLength);">
+            <button class="submit">submit</button>
+        </form>
+        <div class="feturecoming">
+            <p>this feature will be coming soon</p>
+        </div>
+        <p>support me on github</p>
+        <a href="https://github.com/susycocogarcia-lgtm">github profile</a>
+    </div>
+    <style>
+        .submit{
+            width:100px;
+            height:40px;
+            background-color:cornflowerblue;
+            color:white;
+            border-radius:25px;
+            cursor:pointer;
+        }
+        .requestbox{
+            width:400px;
+            height:500px;
+            background-color:lightblue;
+            border-radius: 25px;
+            color:white;
+            font-family:'Courier New', Courier, monospace;
+            display:flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+        .feturecoming{
+            width:200px;
+            height:100px;
+            background-color: orange;
+            border-radius:25px;
+            color:white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        body{
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color:lightgrey;
+        }
+        p{
+            font-family: 'Courier New', Courier, monospace;
+            color:white;
+        }
+    </style>
+</body>
+</html>
