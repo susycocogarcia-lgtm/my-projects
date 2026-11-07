@@ -6,16 +6,14 @@
   <title>Login</title>
   <style>
     .hidden { display: none; }
-    #status-container { min-height: 24px; margin-bottom: 15px; font-weight: bold; }
+    #status { font-weight: bold; margin-bottom: 15px; }
   </style>
 </head>
 <body>
 
-  <div id="status-container">
-    <div id="status"></div>
-  </div>
+  <div id="status"></div>
 
-  <!-- LOGIN PORTAL CONTAINER -->
+  <!-- LOGIN CONTAINER -->
   <div id="auth-container">
     <h2>Login</h2>
     <form id="login-form">
@@ -33,30 +31,27 @@
     const statusDiv = document.getElementById('status');
     const submitBtn = document.getElementById('submit-btn');
 
-    // STATIC ACCOUNT LEDGER: Add authorized system usernames and passwords directly here
-    const USER_DATABASE = {
-      "andres": "Ae2017987sbnc",
-      "admin": "projectsa2026",
-      "testuser": "password123"
+    // SYSTEM USER LEDGER: Enter your credentials directly into the code below
+    const VALID_USERS = {
+      "andres": "Ae2017987sbnc"
     };
 
     document.getElementById('login-form').addEventListener('submit', (e) => {
       e.preventDefault();
       submitBtn.disabled = true;
-      statusDiv.textContent = "Verifying profile parameters...";
+      statusDiv.textContent = "Verifying account details...";
       statusDiv.style.color = "black";
 
       const username = document.getElementById('login-username').value.trim().toLowerCase();
       const password = document.getElementById('login-password').value;
 
-      // Immediate parameter assessment loop bypassing network layers completely
-      if (USER_DATABASE[username] && USER_DATABASE[username] === password) {
-        statusDiv.textContent = "Success! Routing to workspace...";
+      // Evaluates immediately without hitting an external cloud firewall
+      if (VALID_USERS[username] && VALID_USERS[username] === password) {
+        statusDiv.textContent = "Success! Redirecting to workspace...";
         statusDiv.style.color = "green";
         
-        // Pass session identifier via safe, transient runtime storage variable
-        sessionStorage.setItem('current_active_user', username);
-        
+        // Save temporary user token to current tab runtime context
+        sessionStorage.setItem('verified_user_token', username);
         window.location.href = "/dashboard";
       } else {
         statusDiv.textContent = "Login Error: Invalid username or password details.";

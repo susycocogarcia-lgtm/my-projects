@@ -8,7 +8,7 @@
 <body>
 
   <div id="dashboard-container">
-    <h2>Welcome to your Dashboard</h2>
+    <h2>Dashboard</h2>
     
     <div style="border: 1px solid #ccc; padding: 20px; max-width: 300px; margin-top: 20px;">
       <h3>Account Management</h3>
@@ -19,19 +19,19 @@
   </div>
 
   <script>
-    // Pull the active session identifier from immediate runtime memory
-    const activeUser = sessionStorage.getItem('current_active_user');
+    // Pull current user check straight from runtime window context
+    const sessionToken = sessionStorage.getItem('verified_user_token');
 
-    if (!activeUser) {
-      // Boot out instantly to root page if accessed without verification credentials
+    if (!sessionToken) {
+      // Boot out immediately if user didn't fill out the matching login parameters
       window.location.href = "/";
     } else {
-      document.getElementById('user-display').textContent = activeUser;
+      document.getElementById('user-display').textContent = sessionToken;
     }
 
-    // Terminate session state cleanly
+    // Terminate session token safely
     document.getElementById('logout-btn').addEventListener('click', () => {
-      sessionStorage.removeItem('current_active_user');
+      sessionStorage.removeItem('verified_user_token');
       window.location.href = "/";
     });
   </script>
