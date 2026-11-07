@@ -13,7 +13,6 @@
 
   <div id="status"></div>
 
-  <!-- LOGIN CONTAINER -->
   <div id="auth-container">
     <h2>Login</h2>
     <form id="login-form">
@@ -21,40 +20,51 @@
       <input type="password" id="login-password" placeholder="Password" required autocomplete="current-password" />
       <button type="submit" id="submit-btn">Submit</button>
     </form>
-    
-    <p>
-      no account? <a href="https://projectsa.ink">sign in</a>
-    </p>
+    <p>no account? <a href="https://projectsa.ink">sign in</a></p>
   </div>
 
   <script>
+    const PROJECT_ID = "hyprnlxarrmzbubdkuk";
+    const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh5cHJubHhhcnJtemJidWJka3VrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTQwMDc0MjcsImV4cCI6MjEwOTU4MzQyN30.p24H1MA2hxCmqElSNgOlDWwhQosXylOrZrLbsbrhVQo"; 
+
     const statusDiv = document.getElementById('status');
     const submitBtn = document.getElementById('submit-btn');
 
-    // SYSTEM USER LEDGER: Enter your credentials directly into the code below
-    const VALID_USERS = {
-      "andres": "Ae2017987sbnc"
-    };
-
-    document.getElementById('login-form').addEventListener('submit', (e) => {
+    document.getElementById('login-form').addEventListener('submit', async (e) => {
       e.preventDefault();
       submitBtn.disabled = true;
-      statusDiv.textContent = "Verifying account details...";
+      statusDiv.textContent = "Checking Supabase cloud ledger...";
       statusDiv.style.color = "black";
 
       const username = document.getElementById('login-username').value.trim().toLowerCase();
       const password = document.getElementById('login-password').value;
+      const syntheticEmail = `${username}@projectsa.ink`;
 
-      // Evaluates immediately without hitting an external cloud firewall
-      if (VALID_USERS[username] && VALID_USERS[username] === password) {
-        statusDiv.textContent = "Success! Redirecting to workspace...";
-        statusDiv.style.color = "green";
+      try {
+        const response = await fetch(`https://${PROJECT_ID}.supabase.co/auth/v1/token?grant_type=password`, {
+          method: 'POST',
+          headers: {
+            'apikey': SUPABASE_KEY,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ email: syntheticEmail, password: password })
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.error_description || data.error || "Invalid username or password");
+        }
+
+        // Store real session token payload returned from your cloud database
+        sessionStorage.setItem('active_dashboard_session', username);
         
-        // Save temporary user token to current tab runtime context
-        sessionStorage.setItem('verified_user_token', username);
+        statusDiv.textContent = "Authenticated successfully! Redirecting...";
+        statusDiv.style.color = "green";
         window.location.href = "/dashboard";
-      } else {
-        statusDiv.textContent = "Login Error: Invalid username or password details.";
+
+      } catch (error) {
+        statusDiv.textContent = "Login Error: " + error.message;
         statusDiv.style.color = "red";
         submitBtn.disabled = false;
       }
