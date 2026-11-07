@@ -27,21 +27,28 @@
     </p>
   </div>
 
-  <!-- Direct script path with explicit extension to satisfy Firefox security rules -->
-  <script src="https://unpkg.com"></script>
+  <!-- Load library using an alternative network route fallback -->
+  <script src="https://cloudflare.com" integrity="sha512-+N/2yW9nB3qZ9h9s4xK4C8=" crossorigin="anonymous"></script>
   
   <script>
-    // 1. Initialize Supabase Client Connection
+    // 1. Initialize Supabase Client Connection via global window context fallback
     const SUPABASE_URL = "https://supabase.co"; 
     const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh5cHJubHhhcnJtemJidWJka3VrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTQwMDc0MjcsImV4cCI6MjEwOTU4MzQyN30.p24H1MA2hxCmqElSNgOlDWwhQosXylOrZrLbsbrhVQo"; 
 
-    // Confirm that the script loaded successfully in the browser context
+    // Alternate loading declaration if first connection fails
     if (typeof window.supabase === 'undefined') {
-        document.getElementById('status').textContent = "Critical Error: Supabase script failed to load. Check network connection.";
-        document.getElementById('status').style.color = "red";
+      const script = document.createElement('script');
+      script.src = "https://jsdelivr.net";
+      script.onload = () => initSupabase();
+      document.head.appendChild(script);
     } else {
+      initSupabase();
+    }
+
+    function initSupabase() {
         const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
         const statusDiv = document.getElementById('status');
+        statusDiv.textContent = "";
 
         // Automatically route to clean dashboard path if user session is valid
         supabase.auth.onAuthStateChange((event, session) => {
