@@ -13,7 +13,6 @@
 
   <div id="status"></div>
 
-  <!-- SIGNUP MODULE FORM -->
   <div id="auth-container">
     <h2>Create Account</h2>
     <form id="signup-form">
@@ -21,59 +20,56 @@
       <input type="password" id="signup-password" placeholder="Choose a Password" required autocomplete="new-password" />
       <button type="submit" id="submit-btn">Register</button>
     </form>
-    
-    <p>
-      Already have an account? <a href="https://projectsa.ink">Log In here</a>
-    </p>
+    <p>Already have an account? <a href="https://projectsa.ink">Log In here</a></p>
   </div>
 
-  <!-- Load updated official Supabase client -->
-  <script src="https://jsdelivr.net"></script>
-
+  <!-- Bypasses jsDelivr completely using direct strict UNPKG bundle library link -->
+  <script src="https://unpkg.com"></script>
   <script>
-    const SUPABASE_PROJECT_URL = "https://supabase.co"; 
-    // Click the copy icon next to the "default" row under your Publishable key section in the screenshot to verify this string:
-    const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_zUbPyLcfNxTXRZH0_F3ZeA_b2ufw"; 
+    document.addEventListener("DOMContentLoaded", () => {
+      const SUPABASE_PROJECT_URL = "https://hyprnlxarrmzbubdkuk.supabase.co"; 
+      const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_zUbPyLcfNxTXRZH0_F3ZeA_b2ufw"; 
 
-    const statusDiv = document.getElementById('status');
-    const submitBtn = document.getElementById('submit-btn');
+      const statusDiv = document.getElementById('status');
+      const submitBtn = document.getElementById('submit-btn');
 
-    if (typeof window.supabase === 'undefined') {
-        statusDiv.textContent = "Initialization Error: Connection blocked by security layers.";
-        statusDiv.style.color = "red";
-    } else {
-        // Initialize the client using your new modern dashboard key
-        const supabase = window.supabase.createClient(SUPABASE_PROJECT_URL, SUPABASE_PUBLISHABLE_KEY);
+      if (typeof window.supabase === 'undefined') {
+          statusDiv.textContent = "Initialization Error: Script network carrier blocked.";
+          statusDiv.style.color = "red";
+          return;
+      }
 
-        document.getElementById('signup-form').addEventListener('submit', async (e) => {
-          e.preventDefault();
-          submitBtn.disabled = true;
-          statusDiv.textContent = "Registering user directly to Supabase...";
-          statusDiv.style.color = "black";
+      const supabase = window.supabase.createClient(SUPABASE_PROJECT_URL, SUPABASE_PUBLISHABLE_KEY);
 
-          const username = document.getElementById('signup-username').value.trim().toLowerCase();
-          const password = document.getElementById('signup-password').value;
-          const syntheticEmail = `${username}@projectsa.ink`;
+      document.getElementById('signup-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        submitBtn.disabled = true;
+        statusDiv.textContent = "Registering user directly to Supabase...";
+        statusDiv.style.color = "black";
 
-          const { data, error } = await supabase.auth.signUp({
-            email: syntheticEmail,
-            password: password
-          });
+        const username = document.getElementById('signup-username').value.trim().toLowerCase();
+        const password = document.getElementById('signup-password').value;
+        const syntheticEmail = `${username}@projectsa.ink`;
 
-          if (error) {
-            statusDiv.textContent = "Signup Error: " + error.message;
-            statusDiv.style.color = "red";
-            submitBtn.disabled = false;
-          } else {
-            statusDiv.textContent = "Success! Account successfully created on the cloud server. Redirecting...";
-            statusDiv.style.color = "green";
-            
-            setTimeout(() => {
-              window.location.href = "https://projectsa.ink";
-            }, 1500);
-          }
+        const { data, error } = await supabase.auth.signUp({
+          email: syntheticEmail,
+          password: password
         });
-    }
+
+        if (error) {
+          statusDiv.textContent = "Signup Error: " + error.message;
+          statusDiv.style.color = "red";
+          submitBtn.disabled = false;
+        } else {
+          statusDiv.textContent = "Success! Account successfully created on the cloud server. Redirecting...";
+          statusDiv.style.color = "green";
+          
+          setTimeout(() => {
+            window.location.href = "https://projectsa.ink";
+          }, 1500);
+        }
+      });
+    });
   </script>
 </body>
 </html>
