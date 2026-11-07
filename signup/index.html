@@ -23,18 +23,19 @@
     <p>Already have an account? <a href="https://projectsa.ink">Log In here</a></p>
   </div>
 
-  <!-- Bypasses jsDelivr completely using direct strict UNPKG bundle library link -->
-  <script src="https://unpkg.com"></script>
+  <!-- References the same root script file -->
+  <script src="/supabase.js"></script>
+  
   <script>
     document.addEventListener("DOMContentLoaded", () => {
-      const SUPABASE_PROJECT_URL = "https://hyprnlxarrmzbubdkuk.supabase.co"; 
+      const SUPABASE_PROJECT_URL = "https://supabase.co"; 
       const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_zUbPyLcfNxTXRZH0_F3ZeA_b2ufw"; 
 
       const statusDiv = document.getElementById('status');
       const submitBtn = document.getElementById('submit-btn');
 
       if (typeof window.supabase === 'undefined') {
-          statusDiv.textContent = "Initialization Error: Script network carrier blocked.";
+          statusDiv.textContent = "Initialization Error: Local supabase.js file missing in directory root.";
           statusDiv.style.color = "red";
           return;
       }
@@ -57,7 +58,7 @@
         });
 
         if (error) {
-          statusDiv.textContent = "Signup Error: " + error.message;
+          statusDiv.textContent = "Signup Error: " + (error.error_description || error.message || "Registration failed");
           statusDiv.style.color = "red";
           submitBtn.disabled = false;
         } else {

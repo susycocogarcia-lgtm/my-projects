@@ -23,18 +23,19 @@
     <p>no account? <a href="https://projectsa.ink">sign in</a></p>
   </div>
 
-  <!-- Bypasses jsDelivr completely using direct strict UNPKG bundle library link -->
-  <script src="https://unpkg.com"></script>
+  <!-- References the root script file dynamically from any directory path -->
+  <script src="/supabase.js"></script>
+  
   <script>
     document.addEventListener("DOMContentLoaded", () => {
-      const SUPABASE_PROJECT_URL = "https://hyprnlxarrmzbubdkuk.supabase.co"; 
+      const SUPABASE_PROJECT_URL = "https://supabase.co"; 
       const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_zUbPyLcfNxTXRZH0_F3ZeA_b2ufw"; 
 
       const statusDiv = document.getElementById('status');
       const submitBtn = document.getElementById('submit-btn');
 
       if (typeof window.supabase === 'undefined') {
-          statusDiv.textContent = "Initialization Error: Script network carrier blocked.";
+          statusDiv.textContent = "Initialization Error: Local supabase.js file missing in directory root.";
           statusDiv.style.color = "red";
           return;
       }
@@ -43,6 +44,7 @@
 
       supabase.auth.onAuthStateChange((event, session) => {
         if (session) {
+          window.localStorage.setItem("sb-hyprnlxarrmzbubdkuk-auth-token", JSON.stringify(session));
           window.location.href = "/dashboard";
         }
       });
@@ -63,9 +65,12 @@
         });
 
         if (error) {
-          statusDiv.textContent = "Login Error: " + error.message;
+          statusDiv.textContent = "Login Error: " + (error.error_description || error.message || "Invalid credentials");
           statusDiv.style.color = "red";
           submitBtn.disabled = false;
+        } else if (data && data.session) {
+          window.localStorage.setItem("sb-hyprnlxarrmzbubdkuk-auth-token", JSON.stringify(data.session));
+          window.location.href = "/dashboard";
         }
       });
     });

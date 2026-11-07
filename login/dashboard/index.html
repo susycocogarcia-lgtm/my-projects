@@ -9,30 +9,67 @@
 
   <div id="dashboard-container">
     <h2>Dashboard</h2>
-    
     <div style="border: 1px solid #ccc; padding: 20px; max-width: 300px; margin-top: 20px;">
       <h3>Account Management</h3>
-      <p><strong>Username:</strong> <span id="user-display">Loading...</span></p>
-      <p><strong>Status:</strong> <span style="color: green;">Active</span></p>
-      <button id="logout-btn">Log Out</button>
+      <div>
+        <span>Profile Icon: </span>
+        <span id="avatar-letter" style="font-weight: bold; font-size: 20px; color: #0070f3;">?</span>
+      </div>
+      <div style="margin-top: 10px;">
+        <span>Username:</span>
+        <span id="user-display" style="font-weight: bold;">---</span>
+      </div>
+      <div>
+        <span>Status:</span>
+        <span style="color: #10b981; font-weight: bold;">Active</span>
+      </div>
+      <div>
+        <span>Provider:</span>
+        <span style="font-weight: bold;">Supabase Auth (Local Engine)</span>
+      </div>
+      <button id="logout-btn" style="margin-top: 15px; background-color: #ef4444; color: white; border: none; padding: 8px 12px; cursor: pointer; font-weight: bold;">Log Out</button>
     </div>
   </div>
 
+  <script src="/supabase.js"></script>
   <script>
-    // Pull current user check straight from runtime window context
-    const sessionToken = sessionStorage.getItem('verified_user_token');
+    document.addEventListener("DOMContentLoaded", () => {
+      const SUPABASE_PROJECT_URL = "https://supabase.co"; 
+      const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_zUbPyLcfNxTXRZH0_F3ZeA_b2ufw"; 
 
-    if (!sessionToken) {
-      // Boot out immediately if user didn't fill out the matching login parameters
-      window.location.href = "/";
-    } else {
-      document.getElementById('user-display').textContent = sessionToken;
-    }
+      const userDisplay = document.getElementById('user-display');
+      const avatarLetter = document.getElementById('avatar-letter');
 
-    // Terminate session token safely
-    document.getElementById('logout-btn').addEventListener('click', () => {
-      sessionStorage.removeItem('verified_user_token');
-      window.location.href = "/";
+      if (typeof window.supabase === 'undefined') {
+          window.location.href = "/login";
+          return;
+      }
+
+      const supabase = window.supabase.createClient(SUPABASE_PROJECT_URL, SUPABASE_PUBLISHABLE_KEY);
+
+      // Verify active session locally
+      const savedToken = window.localStorage.getItem("sb-hyprnlxarrmzbubdkuk-auth-token");
+      if (!savedToken) {
+        window.location.href = "/login";
+      } else {
+        try {
+          const parsed = JSON.parse(savedToken);
+          const email = parsed.user?.email || parsed.email || "";
+          const username = email.split('@')[0];
+          
+          userDisplay.textContent = username;
+          if (username.length > 0) {
+            avatarLetter.textContent = username.charAt(0).toUpperCase();
+          }
+        } catch(e) {
+          window.location.href = "/login";
+        }
+      }
+
+      document.getElementById('logout-btn').addEventListener('click', async () => {
+        await supabase.auth.signOut();
+        window.location.href = "/login";
+      });
     });
   </script>
 </body>
