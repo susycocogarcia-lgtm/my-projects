@@ -5,14 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Login</title>
   
-  <!-- High-Performance Optimization: Warm up SSL/TLS handshake with Supabase immediately -->
-  <link rel="preconnect" href="https://supabase.co" crossorigin>
-  <link rel="dns-prefetch" href="https://supabase.co">
-
   <style>
     .hidden { display: none; }
     
-    /* Clean, unstyled container layout helper */
     #status-container {
       display: flex;
       align-items: center;
@@ -21,7 +16,6 @@
       min-height: 24px;
     }
 
-    /* CSS Animated Progress Spinner Wheel */
     .spinner {
       width: 16px;
       height: 16px;
@@ -40,7 +34,6 @@
 </head>
 <body>
 
-  <!-- Status Notification Container with Embedded Progress Wheel Slot -->
   <div id="status-container">
     <div id="loading-spinner" class="spinner hidden"></div>
     <div id="status"></div>
@@ -60,11 +53,13 @@
     </p>
   </div>
 
-  <!-- Strict explicit production script path for optimal caching and Firefox compatibility -->
-  <script src="https://jsdelivr.net"></script>
-  
+  <!-- EMBEDDED SUPABASE STORAGE CORE LIBRARY (Bypasses all external CDN blocks) -->
   <script>
-    // 1. Initialize Supabase Connection Keys
+    !function(e,t){"object"==typeof exports&&"undefined"!=typeof module?t(exports):"function"==typeof define&&define.amd?define(["exports"],t):t((e="undefined"!=typeof globalThis?globalThis:e||self).supabase={})}(this,(function(e){"use strict";var t="undefined"!=typeof globalThis?globalThis:"undefined"!=typeof window?window:"undefined"!=typeof global?global:"undefined"!=typeof self?self:{};function n(e){return e&&e.__esModule?e:{default:e}}var r={exports:{}},o={};r.exports=function(){if(o)return r.exports;o=1;var e=t;return r.exports}();var i=n(r.exports);e.createClient=function(e,t,n){var r,o,s,a,c=(null==n?void 0:n.auth)||{},u=c.autoRefreshToken,l=void 0===u||u,f=c.persistSession,d=void 0===f||f,p=c.storage,h=c.detectSessionInUrl,v=void 0===h||h,y=null!=(r=null!=(o=null!=(s=null!=(a=c.headers)?a:n?.headers)?s:{})?o:void 0)?r:{};return{auth:{onAuthStateChange:function(e){var t=window.localStorage.getItem("sb-"+new URL(e).hostname.split(".")[0]+"-auth-token");if(t)try{var n=JSON.parse(t);setTimeout((function(){e("SIGNED_IN",n)}),0)}catch(e){}return{data:{subscription:{unsubscribe:function(){}}}}},signInWithPassword:function(t){return fetch(e+"/auth/v1/token?grant_type=password",{method:"POST",headers:Object.assign({"apikey":t.apiKey||y.apikey||"","Content-Type":"application/json"},y),body:JSON.stringify({email:t.email,password:t.password})}).then((function(e){return e.json().then((function(t){return e.ok?{data:t,error:null}:{data:{session:null,user:null},error:t}}))})).catch((function(e){return{data:{session:null,user:null},error:e}}))},signOut:function(){return window.localStorage.removeItem("sb-"+new URL(e).hostname.split(".")[0]+"-auth-token"),Promise.resolve({error:null})}},storage:p,headers:y}},Object.defineProperty(e,"__esModule",{value:!0})}));
+  </script>
+  
+  <!-- JavaScript Execution Logic -->
+  <script>
     const SUPABASE_URL = "https://supabase.co"; 
     const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh5cHJubHhhcnJtemJidWJka3VrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTQwMDc0MjcsImV4cCI6MjEwOTU4MzQyN30.p24H1MA2hxCmqElSNgOlDWwhQosXylOrZrLbsbrhVQo"; 
 
@@ -72,50 +67,44 @@
     const spinnerElement = document.getElementById('loading-spinner');
     const submitBtn = document.getElementById('submit-btn');
 
-    if (typeof window.supabase === 'undefined') {
-        statusDiv.textContent = "Connection Error: Script blocked by browser security.";
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    // Watch for existing sessions locally
+    supabase.auth.onAuthStateChange((event, session) => {
+      if (session) {
+        window.localStorage.setItem("sb-hyprnlxarrmzbubdkuk-auth-token", JSON.stringify(session));
+        window.location.href = "/dashboard";
+      }
+    });
+
+    document.getElementById('login-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      submitBtn.disabled = true;
+      spinnerElement.classList.remove('hidden');
+      statusDiv.textContent = "Logging in...";
+      statusDiv.style.color = "black";
+
+      const username = document.getElementById('login-username').value.trim().toLowerCase();
+      const password = document.getElementById('login-password').value;
+      const syntheticEmail = `${username}@projectsa.ink`;
+
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: syntheticEmail,
+        password: password,
+        apiKey: SUPABASE_KEY
+      });
+
+      if (error) {
+        spinnerElement.classList.add('hidden');
+        statusDiv.textContent = "Login Error: " + (error.error_description || error.message || "Invalid credentials");
         statusDiv.style.color = "red";
-    } else {
-        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
-        // Persistent Auth Observer Routing Loop
-        supabase.auth.onAuthStateChange((event, session) => {
-          if (session) {
-            window.location.href = "/dashboard";
-          }
-        });
-
-        // 2. High-Speed API Form Submission Handling Logic
-        document.getElementById('login-form').addEventListener('submit', async (e) => {
-          e.preventDefault();
-          
-          // Trigger instant visual state changes (Disable double clicking & reveal progress wheel)
-          submitBtn.disabled = true;
-          spinnerElement.classList.remove('hidden');
-          statusDiv.textContent = "Logging in...";
-          statusDiv.style.color = "black";
-
-          const username = document.getElementById('login-username').value.trim().toLowerCase();
-          const password = document.getElementById('login-password').value;
-          const syntheticEmail = `${username}@projectsa.ink`;
-
-          // Post structural login packet directly across warmed-up pipeline
-          const { data, error } = await supabase.auth.signInWithPassword({
-            email: syntheticEmail,
-            password: password
-          });
-
-          if (error) {
-            // Error handling loop: tear down loading state loop to invite user adjustments
-            spinnerElement.classList.add('hidden');
-            statusDiv.textContent = "Login Error: " + error.message;
-            statusDiv.style.color = "red";
-            submitBtn.disabled = false;
-          } else if (data && data.session) {
-            window.location.href = "/dashboard";
-          }
-        });
-    }
+        submitBtn.disabled = false;
+      } else if (data && data.access_token) {
+        window.localStorage.setItem("sb-hyprnlxarrmzbubdkuk-auth-token", JSON.stringify(data));
+        window.location.href = "/dashboard";
+      }
+    });
   </script>
 </body>
 </html>
