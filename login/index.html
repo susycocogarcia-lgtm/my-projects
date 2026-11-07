@@ -23,6 +23,9 @@
     <p>no account? <a href="https://projectsa.ink">sign in</a></p>
   </div>
 
+  <!-- Alternative open-source CDN pipeline to bypass jsDelivr/UNPKG network blocks -->
+  <script src="https://cloudflare.com"></script>
+  
   <script>
     document.addEventListener("DOMContentLoaded", () => {
       const SUPABASE_PROJECT_URL = "https://supabase.co"; 
@@ -31,41 +34,45 @@
       const statusDiv = document.getElementById('status');
       const submitBtn = document.getElementById('submit-btn');
 
+      if (typeof window.supabase === 'undefined') {
+          statusDiv.textContent = "Initialization Error: Library script blocked by browser network rules.";
+          statusDiv.style.color = "red";
+          return;
+      }
+
+      const supabase = window.supabase.createClient(SUPABASE_PROJECT_URL, SUPABASE_PUBLISHABLE_KEY);
+
+      // Listen for genuine cloud session keys saved in the local environment context
+      supabase.auth.onAuthStateChange((event, session) => {
+        if (session) {
+          window.localStorage.setItem("sb-hyprnlxarrmzbubdkuk-auth-token", JSON.stringify(session));
+          window.location.href = "/dashboard";
+        }
+      });
+
       document.getElementById('login-form').addEventListener('submit', async (e) => {
         e.preventDefault();
         submitBtn.disabled = true;
-        statusDiv.textContent = "Verifying account data with Supabase cloud...";
+        statusDiv.textContent = "Verifying credentials on live Supabase instance...";
         statusDiv.style.color = "black";
 
         const username = document.getElementById('login-username').value.trim().toLowerCase();
         const password = document.getElementById('login-password').value;
         const syntheticEmail = `${username}@projectsa.ink`;
 
-        try {
-          await fetch(`${SUPABASE_PROJECT_URL}/auth/v1/token?grant_type=password`, {
-            method: 'POST',
-            mode: 'no-cors',
-            headers: {
-              'apikey': SUPABASE_PUBLISHABLE_KEY,
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-              email: syntheticEmail,
-              password: password
-            })
-          });
+        // Direct cloud session authentication check
+        const { data, error } = await supabase.auth.signInWithPassword({
+          email: syntheticEmail,
+          password: password
+        });
 
-          // Session token generation simulation block
-          window.localStorage.setItem("sb-hyprnlxarrmzbubdkuk-auth-token", JSON.stringify({ access_token: "forced_bypass", user: { email: syntheticEmail } }));
-          
-          statusDiv.textContent = "Success! Redirecting to dashboard...";
-          statusDiv.style.color = "green";
-          window.location.href = "/login/dashboard";
-
-        } catch (error) {
+        if (error) {
           statusDiv.textContent = "Login Error: " + error.message;
           statusDiv.style.color = "red";
           submitBtn.disabled = false;
+        } else if (data && data.session) {
+          window.localStorage.setItem("sb-hyprnlxarrmzbubdkuk-auth-token", JSON.stringify(data.session));
+          window.location.href = "/dashboard";
         }
       });
     });

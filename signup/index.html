@@ -23,6 +23,9 @@
     <p>Already have an account? <a href="https://projectsa.ink">Log In here</a></p>
   </div>
 
+  <!-- Alternative open-source CDN pipeline to bypass jsDelivr/UNPKG network blocks -->
+  <script src="https://cloudflare.com"></script>
+  
   <script>
     document.addEventListener("DOMContentLoaded", () => {
       const SUPABASE_PROJECT_URL = "https://supabase.co"; 
@@ -31,42 +34,42 @@
       const statusDiv = document.getElementById('status');
       const submitBtn = document.getElementById('submit-btn');
 
+      if (typeof window.supabase === 'undefined') {
+          statusDiv.textContent = "Initialization Error: Library script blocked by browser network rules.";
+          statusDiv.style.color = "red";
+          return;
+      }
+
+      // Initialize the official client engine
+      const supabase = window.supabase.createClient(SUPABASE_PROJECT_URL, SUPABASE_PUBLISHABLE_KEY);
+
       document.getElementById('signup-form').addEventListener('submit', async (e) => {
         e.preventDefault();
         submitBtn.disabled = true;
-        statusDiv.textContent = "Submitting registration directly to Supabase cloud...";
+        statusDiv.textContent = "Writing data directly to Supabase cloud...";
         statusDiv.style.color = "black";
 
         const username = document.getElementById('signup-username').value.trim().toLowerCase();
         const password = document.getElementById('signup-password').value;
         const syntheticEmail = `${username}@projectsa.ink`;
 
-        try {
-          // Bypasses the network block layer using no-cors transmission mode
-          await fetch(`${SUPABASE_PROJECT_URL}/auth/v1/signup`, {
-            method: 'POST',
-            mode: 'no-cors',
-            headers: {
-              'apikey': SUPABASE_PUBLISHABLE_KEY,
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-              email: syntheticEmail,
-              password: password
-            })
-          });
+        // Direct cloud interaction loop
+        const { data, error } = await supabase.auth.signUp({
+          email: syntheticEmail,
+          password: password
+        });
 
-          statusDiv.textContent = "Account submitted! Redirecting to login portal...";
+        if (error) {
+          statusDiv.textContent = "Signup Error: " + error.message;
+          statusDiv.style.color = "red";
+          submitBtn.disabled = false;
+        } else {
+          statusDiv.textContent = "Success! Account verified on Supabase. Redirecting...";
           statusDiv.style.color = "green";
           
           setTimeout(() => {
             window.location.href = "https://projectsa.ink";
           }, 1500);
-
-        } catch (error) {
-          statusDiv.textContent = "Signup Error: " + error.message;
-          statusDiv.style.color = "red";
-          submitBtn.disabled = false;
         }
       });
     });
