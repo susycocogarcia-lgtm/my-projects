@@ -6,7 +6,7 @@
   <title>Login</title>
   <style>
     .hidden { display: none; }
-    #status-container { display: flex; align-items: center; gap: 10px; margin-bottom: 15px; min-height: 24px; }
+    #status-container { min-height: 24px; margin-bottom: 15px; font-weight: bold; }
   </style>
 </head>
 <body>
@@ -15,7 +15,7 @@
     <div id="status"></div>
   </div>
 
-  <!-- LOGIN SCREEN -->
+  <!-- LOGIN PORTAL CONTAINER -->
   <div id="auth-container">
     <h2>Login</h2>
     <form id="login-form">
@@ -30,33 +30,32 @@
   </div>
 
   <script>
-    const PROJECT_ID = "hyprnlxarrmzbubdkuk";
-
     const statusDiv = document.getElementById('status');
     const submitBtn = document.getElementById('submit-btn');
 
-    // Instantly pass through if session key exists in local window memory
-    if (localStorage.getItem(`sb-${PROJECT_ID}-auth-token`)) {
-      window.location.href = "/dashboard";
-    }
+    // STATIC ACCOUNT LEDGER: Add authorized system usernames and passwords directly here
+    const USER_DATABASE = {
+      "andres": "Ae2017987sbnc",
+      "admin": "projectsa2026",
+      "testuser": "password123"
+    };
 
-    document.getElementById('login-form').addEventListener('submit', async (e) => {
+    document.getElementById('login-form').addEventListener('submit', (e) => {
       e.preventDefault();
       submitBtn.disabled = true;
-      statusDiv.textContent = "Verifying...";
+      statusDiv.textContent = "Verifying profile parameters...";
       statusDiv.style.color = "black";
 
       const username = document.getElementById('login-username').value.trim().toLowerCase();
       const password = document.getElementById('login-password').value;
 
-      // Clean local validation routing using secure parameter checks
-      if (username === "andres" && password === "Ae2017987sbnc") {
-        statusDiv.textContent = "Success! Redirecting...";
+      // Immediate parameter assessment loop bypassing network layers completely
+      if (USER_DATABASE[username] && USER_DATABASE[username] === password) {
+        statusDiv.textContent = "Success! Routing to workspace...";
         statusDiv.style.color = "green";
         
-        // Generate a local session token mock that matches what the dashboard looks for
-        const mockData = { email: `${username}@projectsa.ink`, user: { email: `${username}@projectsa.ink` } };
-        localStorage.setItem(`sb-${PROJECT_ID}-auth-token`, JSON.stringify(mockData));
+        // Pass session identifier via safe, transient runtime storage variable
+        sessionStorage.setItem('current_active_user', username);
         
         window.location.href = "/dashboard";
       } else {

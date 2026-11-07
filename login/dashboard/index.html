@@ -7,7 +7,6 @@
 </head>
 <body>
 
-  <!-- Main visible dashboard workspace -->
   <div id="dashboard-container">
     <h2>Welcome to your Dashboard</h2>
     
@@ -20,34 +19,19 @@
   </div>
 
   <script>
-    const PROJECT_ID = "hyprnlxarrmzbubdkuk";
+    // Pull the active session identifier from immediate runtime memory
+    const activeUser = sessionStorage.getItem('current_active_user');
 
-    // 1. Instantly check if the user is allowed to be here
-    const savedTokenData = localStorage.getItem(`sb-${PROJECT_ID}-auth-token`);
-    
-    if (!savedTokenData) {
-      // Not logged in? Boot them straight back to the main login root page
+    if (!activeUser) {
+      // Boot out instantly to root page if accessed without verification credentials
       window.location.href = "/";
     } else {
-      try {
-        const session = JSON.parse(savedTokenData);
-        
-        // Extract the clean username from the synthetic email string
-        const fullEmail = session.user?.email || session.email || "";
-        const username = fullEmail.includes('@') ? fullEmail.split('@')[0] : fullEmail;
-        
-        // Render it to the screen text elements
-        document.getElementById('user-display').textContent = username;
-      } catch (error) {
-        // If the token data is broken or corrupted, clear it and redirect to login
-        localStorage.removeItem(`sb-${PROJECT_ID}-auth-token`);
-        window.location.href = "/";
-      }
+      document.getElementById('user-display').textContent = activeUser;
     }
 
-    // 2. Handle Logging Out cleanly
+    // Terminate session state cleanly
     document.getElementById('logout-btn').addEventListener('click', () => {
-      localStorage.removeItem(`sb-${PROJECT_ID}-auth-token`);
+      sessionStorage.removeItem('current_active_user');
       window.location.href = "/";
     });
   </script>
