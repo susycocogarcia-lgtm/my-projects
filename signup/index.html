@@ -33,7 +33,7 @@
     document.getElementById('signup-form').addEventListener('submit', async (e) => {
       e.preventDefault();
       submitBtn.disabled = true;
-      statusDiv.textContent = "Connecting straight to Supabase cloud...";
+      statusDiv.textContent = "Writing account data directly to Supabase...";
       statusDiv.style.color = "black";
 
       const username = document.getElementById('signup-username').value.trim().toLowerCase();
@@ -41,7 +41,6 @@
       const syntheticEmail = `${username}@projectsa.ink`;
 
       try {
-        // Direct Server REST Injection targeting your Supabase authentication layer
         const response = await fetch(`https://${PROJECT_ID}.supabase.co/auth/v1/signup`, {
           method: 'POST',
           headers: {
@@ -57,7 +56,7 @@
           throw new Error(data.error_description || data.error || data.message || "Registration failed");
         }
 
-        statusDiv.textContent = "Success! Account forced to Supabase. Redirecting to login...";
+        statusDiv.textContent = "Success! Account saved to Supabase. Redirecting...";
         statusDiv.style.color = "green";
         
         setTimeout(() => {

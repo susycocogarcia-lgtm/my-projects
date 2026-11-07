@@ -6,7 +6,7 @@
   <title>Login</title>
   <style>
     .hidden { display: none; }
-    #status { font-weight: bold; margin-bottom: 15px; }
+    #status { font-weight: bold; margin-bottom: 15px; color: red; }
   </style>
 </head>
 <body>
@@ -33,7 +33,7 @@
     document.getElementById('login-form').addEventListener('submit', async (e) => {
       e.preventDefault();
       submitBtn.disabled = true;
-      statusDiv.textContent = "Checking Supabase cloud ledger...";
+      statusDiv.textContent = "Connecting straight to Supabase cloud...";
       statusDiv.style.color = "black";
 
       const username = document.getElementById('login-username').value.trim().toLowerCase();
@@ -56,10 +56,10 @@
           throw new Error(data.error_description || data.error || "Invalid username or password");
         }
 
-        // Store real session token payload returned from your cloud database
+        // Save session locally so the dashboard knows who is logged in
         sessionStorage.setItem('active_dashboard_session', username);
         
-        statusDiv.textContent = "Authenticated successfully! Redirecting...";
+        statusDiv.textContent = "Success! Redirecting to dashboard...";
         statusDiv.style.color = "green";
         window.location.href = "/dashboard";
 
