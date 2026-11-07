@@ -23,32 +23,24 @@
     </form>
     
     <p>
-      no account? <a href="https://projectsa.ink">sign in</a>
+      no account? <a href="https://projectsa.ink/signup">sign up</a>
     </p>
   </div>
 
-  <!-- Load library using an alternative network route fallback -->
-  <script src="https://cloudflare.com" integrity="sha512-+N/2yW9nB3qZ9h9s4xK4C8=" crossorigin="anonymous"></script>
+  <!-- Direct file path to prevent Firefox MIME type blocking -->
+  <script src="https://jsdelivr.net"></script>
   
   <script>
-    // 1. Initialize Supabase Client Connection via global window context fallback
+    // 1. Initialize Supabase Client Connection
     const SUPABASE_URL = "https://supabase.co"; 
     const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh5cHJubHhhcnJtemJidWJka3VrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTQwMDc0MjcsImV4cCI6MjEwOTU4MzQyN30.p24H1MA2hxCmqElSNgOlDWwhQosXylOrZrLbsbrhVQo"; 
 
-    // Alternate loading declaration if first connection fails
     if (typeof window.supabase === 'undefined') {
-      const script = document.createElement('script');
-      script.src = "https://jsdelivr.net";
-      script.onload = () => initSupabase();
-      document.head.appendChild(script);
+        document.getElementById('status').textContent = "Connection Error: Script blocked by browser security.";
+        document.getElementById('status').style.color = "red";
     } else {
-      initSupabase();
-    }
-
-    function initSupabase() {
         const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
         const statusDiv = document.getElementById('status');
-        statusDiv.textContent = "";
 
         // Automatically route to clean dashboard path if user session is valid
         supabase.auth.onAuthStateChange((event, session) => {
@@ -83,3 +75,4 @@
   </script>
 </body>
 </html>
+
