@@ -4,47 +4,20 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Login</title>
-  
-  <!-- High-Performance Optimization: Warm up connection pipes -->
-  <link rel="preconnect" href="https://supabase.co" crossorigin>
-  <link rel="dns-prefetch" href="https://supabase.co">
-
   <style>
     .hidden { display: none; }
-    
-    #status-container {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      margin-bottom: 15px;
-      min-height: 24px;
-    }
-
-    .spinner {
-      width: 16px;
-      height: 16px;
-      border: 2px solid #f3f3f3;
-      border-top: 2px solid #0070f3;
-      border-radius: 50%;
-      animation: spin 0.8s linear infinite;
-      display: inline-block;
-    }
-
-    @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
-    }
+    #status-container { display: flex; align-items: center; gap: 10px; margin-bottom: 15px; min-height: 24px; }
+    .spinner { width: 16px; height: 16px; border: 2px solid #f3f3f3; border-top: 2px solid #0070f3; border-radius: 50%; animation: spin 0.8s linear infinite; display: inline-block; }
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
   </style>
 </head>
 <body>
 
-  <!-- Status Notification Container -->
   <div id="status-container">
     <div id="loading-spinner" class="spinner hidden"></div>
     <div id="status"></div>
   </div>
 
-  <!-- LOGIN SCREEN (Guaranteed to render) -->
   <div id="auth-container">
     <h2>Login</h2>
     <form id="login-form">
@@ -52,34 +25,20 @@
       <input type="password" id="login-password" placeholder="Password" required autocomplete="current-password" />
       <button type="submit" id="submit-btn">Submit</button>
     </form>
-    
-    <p>
-      no account? <a href="https://projectsa.ink">sign in</a>
-    </p>
+    <p>no account? <a href="https://projectsa.ink">sign in</a></p>
   </div>
 
   <script>
-    const PROJECT_ID = "hyprnlxarrmzbubdkuk";
-    const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh5cHJubHhhcnJtemJidWJka3VrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTQwMDc0MjcsImV4cCI6MjEwOTU4MzQyN30.p24H1MA2hxCmqElSNgOlDWwhQosXylOrZrLbsbrhVQo"; 
-
     const statusDiv = document.getElementById('status');
     const spinnerElement = document.getElementById('loading-spinner');
     const submitBtn = document.getElementById('submit-btn');
 
-    // Safe session check wrapped to prevent initialization page-crashes
-    try {
-      const savedToken = localStorage.getItem(`sb-${PROJECT_ID}-auth-token`);
-      if (savedToken && savedToken !== "null" && savedToken !== "undefined") {
-        window.location.href = "/dashboard";
-      }
-    } catch (e) {
-      console.error("Session verification bypassed:", e);
+    if (localStorage.getItem('sb-auth-token')) {
+      window.location.href = "/dashboard";
     }
 
-    // Handle Form Submission Execution Loop
     document.getElementById('login-form').addEventListener('submit', async (e) => {
       e.preventDefault();
-      
       submitBtn.disabled = true;
       if (spinnerElement) spinnerElement.classList.remove('hidden');
       statusDiv.textContent = "Logging in...";
@@ -87,37 +46,22 @@
 
       const username = document.getElementById('login-username').value.trim().toLowerCase();
       const password = document.getElementById('login-password').value;
-      const syntheticEmail = `${username}@projectsa.ink`;
-
-      const authEndpoint = `https://${PROJECT_ID}.supabase.co/auth/v1/token?grant_type=password`;
 
       try {
-        const response = await fetch(authEndpoint, {
+        // Safe Local Proxy Fetch call that passes seamlessly through any browser VPN
+        const response = await fetch('/api/login', {
           method: 'POST',
-          mode: 'cors', 
-          credentials: 'omit',
-          headers: {
-            'apikey': SUPABASE_KEY,
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            email: syntheticEmail,
-            password: password
-          })
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, password })
         });
 
         const data = await response.json();
 
         if (!response.ok) {
-          throw new Error(data.error_description || data.error || "Invalid username or password");
+          throw new Error(data.error || "Invalid credentials");
         }
 
-        // Commit active token payload straight to memory
-        localStorage.setItem(`sb-${PROJECT_ID}-auth-token`, JSON.stringify(data));
-        
-        statusDiv.textContent = "Success! Redirecting...";
-        statusDiv.style.color = "green";
-        
+        localStorage.setItem('sb-auth-token', JSON.stringify(data));
         window.location.href = "/dashboard";
 
       } catch (error) {
