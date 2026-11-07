@@ -3,75 +3,15 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Login & Dashboard</title>
+  <title>Login</title>
   <style>
-    body { font-family: sans-serif; max-width: 380px; margin: 80px auto; padding: 25px; border: 1px solid #ddd; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
-    h2, h3 { margin-bottom: 20px; text-align: center; }
-    form { display: flex; flex-direction: column; gap: 12px; }
-    input, button { padding: 10px; font-size: 16px; border: 1px solid #ccc; border-radius: 4px; }
-    button { background-color: #0070f3; color: white; border: none; cursor: pointer; font-weight: bold; }
-    button:hover { background-color: #0051a8; }
-    .footer-text { margin-top: 15px; text-align: center; font-size: 14px; color: #555; }
-    .footer-text a { color: #0070f3; text-decoration: none; }
-    .footer-text a:hover { text-decoration: underline; }
-    #status { font-size: 14px; text-align: center; margin-bottom: 15px; font-weight: bold; }
     .hidden { display: none; }
-
-    /* Account Management Box Styling */
-    .mgmt-box {
-      border: 1px solid #e2e8f0;
-      background-color: #f8fafc;
-      border-radius: 6px;
-      padding: 20px;
-      margin-top: 10px;
-    }
-    
-    /* Dynamic Letter Avatar Profile Styling */
-    .profile-header {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      margin-bottom: 20px;
-    }
-    .avatar-circle {
-      width: 60px;
-      height: 60px;
-      background-color: #0070f3;
-      color: white;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 28px;
-      font-weight: bold;
-      text-transform: uppercase;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-      margin-bottom: 10px;
-    }
-
-    .mgmt-item {
-      display: flex;
-      justify-content: space-between;
-      padding: 8px 0;
-      border-bottom: 1px dashed #e2e8f0;
-      font-size: 14px;
-    }
-    .mgmt-item:last-of-type { border-bottom: none; }
-    .mgmt-label { color: #64748b; font-weight: 500; }
-    .mgmt-value { color: #0f172a; font-weight: 600; }
-    .logout-btn {
-      width: 100%;
-      margin-top: 15px;
-      background-color: #ef4444;
-    }
-    .logout-btn:hover { background-color: #dc2626; }
   </style>
 </head>
 <body>
 
   <div id="status"></div>
 
-  <!-- LOGIN SCREEN -->
   <div id="auth-container">
     <h2>Login</h2>
     <form id="login-form">
@@ -80,107 +20,32 @@
       <button type="submit">Submit</button>
     </form>
     
-    <p class="footer-text">
-      no account? <a href="https://projectsa.ink/signup">sign in</a>
+    <p>
+      no account? <a href="https://projectsa.ink">sign in</a>
     </p>
   </div>
 
-  <!-- DASHBOARD CONTROL PANEL -->
-  <div id="dashboard-container" class="hidden">
-    <h2>Dashboard</h2>
-    
-    <!-- Account Management Box -->
-    <div class="mgmt-box">
-      
-      <!-- Profile Letter Header -->
-      <div class="profile-header">
-        <div id="avatar-letter" class="avatar-circle">?</div>
-        <h3 style="margin: 0;">Account Management</h3>
-      </div>
-      
-      <div class="mgmt-item">
-        <span class="mgmt-label">Username:</span>
-        <span class="mgmt-value" id="user-display">---</span>
-      </div>
-      
-      <div class="mgmt-item">
-        <span class="mgmt-label">Status:</span>
-        <span class="mgmt-value" style="color: #10b981;">Active</span>
-      </div>
-
-      <div class="mgmt-item">
-        <span class="mgmt-label">get projectsa.ink installer lisence code</span>
-      </div>
-
-      <button id="logout-btn" class="logout-btn">Log Out</button>
-    </div>
-  </div>
-
-  <!-- Load Supabase from CDN -->
-  <script src="https://jsdelivr.net"></script>
+  <script src="https://unpkg.com"></script>
   
-    <!-- Load Supabase from CDN -->
-  <script src="https://jsdelivr.net"></script>
-  
-  <!-- JavaScript Logic -->
   <script>
-    // 1. Initialize Supabase
     const SUPABASE_URL = "https://supabase.co"; 
     const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh5cHJubHhhcnJtemJidWJka3VrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTQwMDc0MjcsImV4cCI6MjEwOTU4MzQyN30.p24H1MA2hxCmqElSNgOlDWwhQosXylOrZrLbsbrhVQo"; 
 
     const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
-    // DOM Elements
-    const authContainer = document.getElementById('auth-container');
-    const dashboardContainer = document.getElementById('dashboard-container');
     const statusDiv = document.getElementById('status');
-    const userDisplay = document.getElementById('user-display');
-    const avatarLetter = document.getElementById('avatar-letter');
 
-    // Helper function to update the user interface smoothly
-    function showDashboard(session) {
-      authContainer.classList.add('hidden');
-      dashboardContainer.classList.remove('hidden');
-      statusDiv.textContent = "";
-
-      // Safely extract the original username from the pseudo-email string
-      const fullEmail = session.user.email || "";
-      const username = fullEmail.includes('@') ? fullEmail.split('@')[0] : fullEmail;
-      
-      // Update dashboard text and profile icon letter
-      userDisplay.textContent = username;
-      if (username.length > 0) {
-        avatarLetter.textContent = username.charAt(0).toUpperCase();
-      }
-    }
-
-    function showLoginForm() {
-      authContainer.classList.remove('hidden');
-      dashboardContainer.classList.add('hidden');
-      userDisplay.textContent = "---";
-      avatarLetter.textContent = "?";
-    }
-
-    // 2. Track Auth State Changes (Triggers automatically on login/logout/refresh)
     supabase.auth.onAuthStateChange((event, session) => {
-      console.log("Auth Event triggered:", event); // Diagnostic check for developer console
       if (session) {
-        showDashboard(session);
-      } else {
-        showLoginForm();
+        window.location.href = "/dashboard";
       }
     });
 
-    // 3. Handle Log In via Username
     document.getElementById('login-form').addEventListener('submit', async (e) => {
       e.preventDefault();
       statusDiv.textContent = "Logging in...";
-      statusDiv.style.color = "#0070f3";
 
       const username = document.getElementById('login-username').value.trim().toLowerCase();
       const password = document.getElementById('login-password').value;
-
-      // Construct synthetic email matching the signup configuration
       const syntheticEmail = `${username}@projectsa.ink`;
 
       const { data, error } = await supabase.auth.signInWithPassword({
@@ -190,21 +55,10 @@
 
       if (error) {
         statusDiv.textContent = "Login Error: " + error.message;
-        statusDiv.style.color = "#ef4444";
       } else if (data && data.session) {
-        // Fallback reinforcement: explicitly force the dashboard transition if onAuthStateChange lags
-        showDashboard(data.session);
+        window.location.href = "/dashboard";
       }
     });
-
-    // 4. Handle Log Out
-    document.getElementById('logout-btn').addEventListener('click', async () => {
-      await supabase.auth.signOut();
-      statusDiv.textContent = "Logged out successfully.";
-      statusDiv.style.color = "#10b981";
-      showLoginForm();
-    });
   </script>
-
 </body>
 </html>
