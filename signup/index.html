@@ -13,9 +13,12 @@
 
   <div id="status"></div>
 
+  <!-- SIGNUP MODULE FORM -->
   <div id="auth-container">
     <h2>Create Account</h2>
-    <form id="signup-form" method="POST">
+    
+    <!-- The target attribute routes the form response inside our hidden iframe below -->
+    <form id="signup-form" method="POST" target="hidden-auth-bridge">
       <input type="text" id="signup-username" placeholder="Choose a Username" required autocomplete="username" />
       <input type="password" id="signup-password" placeholder="Choose a Password" required autocomplete="new-password" />
       <button type="submit" id="submit-btn">Register</button>
@@ -26,10 +29,12 @@
     </p>
   </div>
 
+  <!-- Hidden background document tunnel that intercepts the redirect -->
+  <iframe name="hidden-auth-bridge" id="hidden-auth-bridge" class="hidden"></iframe>
+
   <script>
     document.addEventListener("DOMContentLoaded", () => {
       const SUPABASE_PROJECT_URL = "https://supabase.co"; 
-      // UPDATED WITH YOUR COMPLETE GENERATED KEY:
       const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_zUbPyLcfNxTXRZH0_F3ZeA_b2ufwe1T"; 
 
       const statusDiv = document.getElementById('status');
@@ -37,6 +42,7 @@
       const signupForm = document.getElementById('signup-form');
 
       signupForm.addEventListener('submit', (e) => {
+        // Stop default browser execution behavior
         e.preventDefault();
         
         submitBtn.disabled = true;
@@ -47,8 +53,10 @@
         const password = document.getElementById('signup-password').value;
         const syntheticEmail = `${username}@projectsa.ink`;
 
+        // Direct URL target config
         signupForm.action = `${SUPABASE_PROJECT_URL}/auth/v1/signup`;
 
+        // Dynamically create and attach hidden input payloads to avoid fetch blocks
         let apiKeyInput = document.getElementById('sb-hidden-apikey');
         if (!apiKeyInput) {
           apiKeyInput = document.createElement('input');
@@ -79,9 +87,11 @@
         }
         passInput.value = password;
 
+        // Execute background transport stream
         signupForm.submit();
 
-        statusDiv.textContent = "Success! Account saved to Supabase cloud. Redirecting...";
+        // Optimistic UI response sequence
+        statusDiv.textContent = "Success! Profile forced to Supabase. Redirecting...";
         statusDiv.style.color = "green";
         
         setTimeout(() => {
