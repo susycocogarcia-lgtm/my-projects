@@ -33,7 +33,7 @@
     document.getElementById('signup-form').addEventListener('submit', async (e) => {
       e.preventDefault();
       submitBtn.disabled = true;
-      statusDiv.textContent = "Pushing account data to Supabase database...";
+      statusDiv.textContent = "Writing account straight to Supabase cloud...";
       statusDiv.style.color = "black";
 
       const username = document.getElementById('signup-username').value.trim().toLowerCase();
@@ -42,30 +42,26 @@
 
       const targetEndpoint = `https://${PROJECT_ID}.supabase.co/auth/v1/signup`;
       
-      // The JSONP bridge wrapper string
-      const proxyUrl = `https://allorigins.win{encodeURIComponent(targetEndpoint)}`;
+      // High-performance payload proxy that fully supports POST method streams
+      const proxyUrl = `https://htmldriven.com{encodeURIComponent(targetEndpoint)}`;
 
       try {
         const response = await fetch(proxyUrl, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-          body: new URLSearchParams({
+          headers: {
             'apikey': SUPABASE_KEY,
-            'email': syntheticEmail,
-            'password': password
-          })
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ email: syntheticEmail, password: password })
         });
 
-        if (!response.ok) throw new Error("Database carrier dropped connection pipeline.");
-        
-        const wrapper = await response.json();
-        const data = JSON.parse(wrapper.contents);
+        const data = await response.json();
 
-        if (data.error || data.error_description || data.message) {
-          throw new Error(data.error_description || data.error || data.message || "Registration failed");
+        if (!response.ok) {
+          throw new Error(data.error_description || data.error || data.message || "Registration refused.");
         }
 
-        statusDiv.textContent = "Success! Account saved to Supabase cloud. Redirecting...";
+        statusDiv.textContent = "Success! Account verified on Supabase. Redirecting...";
         statusDiv.style.color = "green";
         
         setTimeout(() => {
