@@ -23,9 +23,6 @@
     <p>Already have an account? <a href="https://projectsa.ink">Log In here</a></p>
   </div>
 
-  <!-- References the same root script file -->
-  <script src="/supabase.js"></script>
-  
   <script>
     document.addEventListener("DOMContentLoaded", () => {
       const SUPABASE_PROJECT_URL = "https://supabase.co"; 
@@ -33,14 +30,6 @@
 
       const statusDiv = document.getElementById('status');
       const submitBtn = document.getElementById('submit-btn');
-
-      if (typeof window.supabase === 'undefined') {
-          statusDiv.textContent = "Initialization Error: Local supabase.js file missing in directory root.";
-          statusDiv.style.color = "red";
-          return;
-      }
-
-      const supabase = window.supabase.createClient(SUPABASE_PROJECT_URL, SUPABASE_PUBLISHABLE_KEY);
 
       document.getElementById('signup-form').addEventListener('submit', async (e) => {
         e.preventDefault();
@@ -52,22 +41,36 @@
         const password = document.getElementById('signup-password').value;
         const syntheticEmail = `${username}@projectsa.ink`;
 
-        const { data, error } = await supabase.auth.signUp({
-          email: syntheticEmail,
-          password: password
-        });
+        try {
+          const response = await fetch(`${SUPABASE_PROJECT_URL}/auth/v1/signup`, {
+            method: 'POST',
+            headers: {
+              'apikey': SUPABASE_PUBLISHABLE_KEY,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              email: syntheticEmail,
+              password: password
+            })
+          });
 
-        if (error) {
-          statusDiv.textContent = "Signup Error: " + (error.error_description || error.message || "Registration failed");
-          statusDiv.style.color = "red";
-          submitBtn.disabled = false;
-        } else {
+          const data = await response.json();
+
+          if (!response.ok) {
+            throw new Error(data.error_description || data.error || data.message || "Registration failed");
+          }
+
           statusDiv.textContent = "Success! Account successfully created on the cloud server. Redirecting...";
           statusDiv.style.color = "green";
           
           setTimeout(() => {
             window.location.href = "https://projectsa.ink";
           }, 1500);
+
+        } catch (error) {
+          statusDiv.textContent = "Signup Error: " + error.message;
+          statusDiv.style.color = "red";
+          submitBtn.disabled = false;
         }
       });
     });

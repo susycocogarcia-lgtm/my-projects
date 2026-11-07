@@ -23,9 +23,6 @@
     <p>no account? <a href="https://projectsa.ink">sign in</a></p>
   </div>
 
-  <!-- References the root script file dynamically from any directory path -->
-  <script src="/supabase.js"></script>
-  
   <script>
     document.addEventListener("DOMContentLoaded", () => {
       const SUPABASE_PROJECT_URL = "https://supabase.co"; 
@@ -34,20 +31,11 @@
       const statusDiv = document.getElementById('status');
       const submitBtn = document.getElementById('submit-btn');
 
-      if (typeof window.supabase === 'undefined') {
-          statusDiv.textContent = "Initialization Error: Local supabase.js file missing in directory root.";
-          statusDiv.style.color = "red";
-          return;
+      // Check if user session data token is already saved in memory
+      const savedToken = window.localStorage.getItem("sb-hyprnlxarrmzbubdkuk-auth-token");
+      if (savedToken) {
+        window.location.href = "/dashboard";
       }
-
-      const supabase = window.supabase.createClient(SUPABASE_PROJECT_URL, SUPABASE_PUBLISHABLE_KEY);
-
-      supabase.auth.onAuthStateChange((event, session) => {
-        if (session) {
-          window.localStorage.setItem("sb-hyprnlxarrmzbubdkuk-auth-token", JSON.stringify(session));
-          window.location.href = "/dashboard";
-        }
-      });
 
       document.getElementById('login-form').addEventListener('submit', async (e) => {
         e.preventDefault();
@@ -59,18 +47,36 @@
         const password = document.getElementById('login-password').value;
         const syntheticEmail = `${username}@projectsa.ink`;
 
-        const { data, error } = await supabase.auth.signInWithPassword({
-          email: syntheticEmail,
-          password: password
-        });
+        try {
+          const response = await fetch(`${SUPABASE_PROJECT_URL}/auth/v1/token?grant_type=password`, {
+            method: 'POST',
+            headers: {
+              'apikey': SUPABASE_PUBLISHABLE_KEY,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              email: syntheticEmail,
+              password: password
+            })
+          });
 
-        if (error) {
-          statusDiv.textContent = "Login Error: " + (error.error_description || error.message || "Invalid credentials");
+          const data = await response.json();
+
+          if (!response.ok) {
+            throw new Error(data.error_description || data.error || "Invalid username or password");
+          }
+
+          // Save token data directly into browser storage memory
+          window.localStorage.setItem("sb-hyprnlxarrmzbubdkuk-auth-token", JSON.stringify(data));
+          
+          statusDiv.textContent = "Success! Redirecting to dashboard...";
+          statusDiv.style.color = "green";
+          window.location.href = "/dashboard";
+
+        } catch (error) {
+          statusDiv.textContent = "Login Error: " + error.message;
           statusDiv.style.color = "red";
           submitBtn.disabled = false;
-        } else if (data && data.session) {
-          window.localStorage.setItem("sb-hyprnlxarrmzbubdkuk-auth-token", JSON.stringify(data.session));
-          window.location.href = "/dashboard";
         }
       });
     });
