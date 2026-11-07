@@ -20,21 +20,40 @@
       <input type="password" id="login-password" placeholder="Password" required autocomplete="current-password" />
       <button type="submit" id="submit-btn">Submit</button>
     </form>
-    <p>no account? <a href="https://projectsa.ink">sign in</a></p>
+    
+    <p>
+      no account? <a href="https://projectsa.ink">sign in</a>
+    </p>
   </div>
 
+  <script src="https://unpkg.com"></script>
+  
   <script>
     document.addEventListener("DOMContentLoaded", () => {
-      const SUPABASE_PROJECT_URL = "https://hyprnlxarrmzbubdkuk.supabase.co"; 
+      const SUPABASE_PROJECT_URL = "https://supabase.co"; 
       const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_zUbPyLcfNxTXRZH0_F3ZeA_b2ufwe1T"; 
 
       const statusDiv = document.getElementById('status');
       const submitBtn = document.getElementById('submit-btn');
 
+      if (typeof window.supabase === 'undefined') {
+          statusDiv.textContent = "Script Initialization Error: Network infrastructure blocked library access.";
+          statusDiv.style.color = "red";
+          return;
+      }
+
+      const supabase = window.supabase.createClient(SUPABASE_PROJECT_URL, SUPABASE_PUBLISHABLE_KEY);
+
+      // Check persistent browser tokens before drawing layout options
+      const savedToken = window.localStorage.getItem("sb-hyprnlxarrmzbubdkuk-auth-token");
+      if (savedToken) {
+        window.location.href = "/dashboard";
+      }
+
       document.getElementById('login-form').addEventListener('submit', async (e) => {
         e.preventDefault();
         submitBtn.disabled = true;
-        statusDiv.textContent = "Verifying credentials against Supabase cloud...";
+        statusDiv.textContent = "Checking Supabase cloud ledger...";
         statusDiv.style.color = "black";
 
         const username = document.getElementById('login-username').value.trim().toLowerCase();
@@ -42,26 +61,19 @@
         const syntheticEmail = `${username}@projectsa.ink`;
 
         try {
-          const response = await fetch(`${SUPABASE_PROJECT_URL}/auth/v1/token?grant_type=password`, {
-            method: 'POST',
-            headers: {
-              'apikey': SUPABASE_PUBLISHABLE_KEY,
-              'Authorization': `Bearer ${SUPABASE_PUBLISHABLE_KEY}`,
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ email: syntheticEmail, password: password })
+          const { data, error } = await supabase.auth.signInWithPassword({
+            email: syntheticEmail,
+            password: password
           });
 
-          const data = await response.json();
-
-          if (!response.ok) {
-            throw new Error(data.error_description || data.error || "Invalid username or password");
+          if (error) {
+            throw new Error(error.message);
           }
 
-          // Save the actual authentication object returned from your active project server
-          window.localStorage.setItem("sb-hyprnlxarrmzbubdkuk-auth-token", JSON.stringify(data));
+          // Commit active auth token values directly into session memory structures
+          window.localStorage.setItem("sb-hyprnlxarrmzbubdkuk-auth-token", JSON.stringify(data.session));
           
-          statusDiv.textContent = "Authenticated successfully! Redirecting...";
+          statusDiv.textContent = "Success! Redirecting to dashboard...";
           statusDiv.style.color = "green";
           window.location.href = "/dashboard";
 
