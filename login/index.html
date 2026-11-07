@@ -36,6 +36,7 @@
     const spinnerElement = document.getElementById('loading-spinner');
     const submitBtn = document.getElementById('submit-btn');
 
+    // Automatically check for an active local session token
     if (localStorage.getItem(`sb-${PROJECT_ID}-auth-token`)) {
       window.location.href = "/dashboard";
     }
@@ -50,10 +51,10 @@
       const username = document.getElementById('login-username').value.trim().toLowerCase();
       const password = document.getElementById('login-password').value;
       const syntheticEmail = `${username}@projectsa.ink`;
-      const authEndpoint = `https://${PROJECT_ID}.supabase.co/auth/v1/token?grant_type=password`;
 
       try {
-        const response = await fetch(authEndpoint, {
+        // Direct, standard native fetch to the correct Supabase auth endpoint
+        const response = await fetch(`https://${PROJECT_ID}.supabase.co/auth/v1/token?grant_type=password`, {
           method: 'POST',
           headers: {
             'apikey': SUPABASE_KEY,
@@ -71,42 +72,17 @@
           throw new Error(data.error_description || data.error || "Invalid username or password");
         }
 
+        // Commit active token details straight into your local memory
         localStorage.setItem(`sb-${PROJECT_ID}-auth-token`, JSON.stringify(data));
+        
         statusDiv.textContent = "Success! Redirecting...";
         statusDiv.style.color = "green";
         window.location.href = "/dashboard";
 
       } catch (error) {
         if (spinnerElement) spinnerElement.classList.add('hidden');
-        
-        // Custom error intercept loop to catch local proxy blocks safely
-        if (error.message.includes("fetch") || error.name === "TypeError") {
-          statusDiv.textContent = "Network block detected. Attempting secure fallback channel...";
-          statusDiv.style.color = "orange";
-          
-          // Secure fallback stream: Attempt connection using direct parameter injection
-          try {
-            const fallbackUrl = `${authEndpoint}&apikey=${encodeURIComponent(SUPABASE_KEY)}`;
-            const fallbackResponse = await fetch(fallbackUrl, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ email: syntheticEmail, password: password })
-            });
-            const fallbackData = await fallbackResponse.json();
-            
-            if (fallbackResponse.ok) {
-              localStorage.setItem(`sb-${PROJECT_ID}-auth-token`, JSON.stringify(fallbackData));
-              window.location.href = "/dashboard";
-              return;
-            }
-          } catch(innerErr) {}
-          
-          statusDiv.textContent = "Connection refused by network firewall. Disable active proxy restrictions to authenticate.";
-          statusDiv.style.color = "red";
-        } else {
-          statusDiv.textContent = "Login Error: " + error.message;
-          statusDiv.style.color = "red";
-        }
+        statusDiv.textContent = "Login Error: " + error.message;
+        statusDiv.style.color = "red";
         submitBtn.disabled = false;
       }
     });
