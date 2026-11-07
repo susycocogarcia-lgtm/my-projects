@@ -25,6 +25,30 @@
       padding: 20px;
       margin-top: 10px;
     }
+    
+    /* Dynamic Letter Avatar Profile Styling */
+    .profile-header {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+    .avatar-circle {
+      width: 60px;
+      height: 60px;
+      background-color: #0070f3;
+      color: white;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 28px;
+      font-weight: bold;
+      text-transform: uppercase;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      margin-bottom: 10px;
+    }
+
     .mgmt-item {
       display: flex;
       justify-content: space-between;
@@ -67,7 +91,12 @@
     
     <!-- Account Management Box -->
     <div class="mgmt-box">
-      <h3>Account Management</h3>
+      
+      <!-- Profile Letter Header -->
+      <div class="profile-header">
+        <div id="avatar-letter" class="avatar-circle">?</div>
+        <h3 style="margin: 0;">Account Management</h3>
+      </div>
       
       <div class="mgmt-item">
         <span class="mgmt-label">Username:</span>
@@ -104,6 +133,7 @@
     const dashboardContainer = document.getElementById('dashboard-container');
     const statusDiv = document.getElementById('status');
     const userDisplay = document.getElementById('user-display');
+    const avatarLetter = document.getElementById('avatar-letter');
 
     // 2. Track Auth State Changes
     supabase.auth.onAuthStateChange((event, session) => {
@@ -115,11 +145,19 @@
         // Extract original username by removing the synthetic email domain extension
         const fullEmail = session.user.email || "";
         const username = fullEmail.split('@')[0];
+        
+        // Update user display text
         userDisplay.textContent = username;
+        
+        // Extract, capitalize, and apply the first letter to the avatar circle
+        if (username.length > 0) {
+          avatarLetter.textContent = username.charAt(0).toUpperCase();
+        }
       } else {
         authContainer.classList.remove('hidden');
         dashboardContainer.classList.add('hidden');
         userDisplay.textContent = "---";
+        avatarLetter.textContent = "?";
       }
     });
 
