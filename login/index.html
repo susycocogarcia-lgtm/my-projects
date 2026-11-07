@@ -119,6 +119,9 @@
   <!-- Load Supabase from CDN -->
   <script src="https://jsdelivr.net"></script>
   
+    <!-- Load Supabase from CDN -->
+  <script src="https://jsdelivr.net"></script>
+  
   <!-- JavaScript Logic -->
   <script>
     // 1. Initialize Supabase
@@ -134,29 +137,37 @@
     const userDisplay = document.getElementById('user-display');
     const avatarLetter = document.getElementById('avatar-letter');
 
-    // 2. Track Auth State Changes
-    supabase.auth.onAuthStateChange((event, session) => {
-      if (session) {
-        authContainer.classList.add('hidden');
-        dashboardContainer.classList.remove('hidden');
-        statusDiv.textContent = "";
+    // Helper function to update the user interface smoothly
+    function showDashboard(session) {
+      authContainer.classList.add('hidden');
+      dashboardContainer.classList.remove('hidden');
+      statusDiv.textContent = "";
 
-        // Extract original username by removing the synthetic email domain extension
-        const fullEmail = session.user.email || "";
-        const username = fullEmail.split('@')[0];
-        
-        // Update user display text
-        userDisplay.textContent = username;
-        
-        // Extract, capitalize, and apply the first letter to the avatar circle
-        if (username.length > 0) {
-          avatarLetter.textContent = username.charAt(0).toUpperCase();
-        }
+      // Safely extract the original username from the pseudo-email string
+      const fullEmail = session.user.email || "";
+      const username = fullEmail.includes('@') ? fullEmail.split('@')[0] : fullEmail;
+      
+      // Update dashboard text and profile icon letter
+      userDisplay.textContent = username;
+      if (username.length > 0) {
+        avatarLetter.textContent = username.charAt(0).toUpperCase();
+      }
+    }
+
+    function showLoginForm() {
+      authContainer.classList.remove('hidden');
+      dashboardContainer.classList.add('hidden');
+      userDisplay.textContent = "---";
+      avatarLetter.textContent = "?";
+    }
+
+    // 2. Track Auth State Changes (Triggers automatically on login/logout/refresh)
+    supabase.auth.onAuthStateChange((event, session) => {
+      console.log("Auth Event triggered:", event); // Diagnostic check for developer console
+      if (session) {
+        showDashboard(session);
       } else {
-        authContainer.classList.remove('hidden');
-        dashboardContainer.classList.add('hidden');
-        userDisplay.textContent = "---";
-        avatarLetter.textContent = "?";
+        showLoginForm();
       }
     });
 
@@ -169,9 +180,10 @@
       const username = document.getElementById('login-username').value.trim().toLowerCase();
       const password = document.getElementById('login-password').value;
 
+      // Construct synthetic email matching the signup configuration
       const syntheticEmail = `${username}@projectsa.ink`;
 
-      const { error } = await supabase.auth.signInWithPassword({
+      const { data, error } = await supabase.auth.signInWithPassword({
         email: syntheticEmail,
         password: password
       });
@@ -179,6 +191,9 @@
       if (error) {
         statusDiv.textContent = "Login Error: " + error.message;
         statusDiv.style.color = "#ef4444";
+      } else if (data && data.session) {
+        // Fallback reinforcement: explicitly force the dashboard transition if onAuthStateChange lags
+        showDashboard(data.session);
       }
     });
 
@@ -187,7 +202,9 @@
       await supabase.auth.signOut();
       statusDiv.textContent = "Logged out successfully.";
       statusDiv.style.color = "#10b981";
+      showLoginForm();
     });
   </script>
+
 </body>
 </html>
