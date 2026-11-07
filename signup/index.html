@@ -11,27 +11,17 @@
 </head>
 <body>
 
-  <!-- Status & Message Hub -->
   <div id="status"></div>
 
-  <!-- SIGNUP CONTAINER -->
   <div id="auth-container">
     <h2>Create Account</h2>
-    
-    <!-- Using a target attribute to isolate the execution pipeline inside the iframe -->
-    <form id="signup-form" target="hidden-bridge-iframe" method="POST">
+    <form id="signup-form">
       <input type="text" id="signup-username" placeholder="Choose a Username" required autocomplete="username" />
       <input type="password" id="signup-password" placeholder="Choose a Password" required autocomplete="new-password" />
       <button type="submit" id="submit-btn">Register</button>
     </form>
-    
-    <p>
-      Already have an account? <a href="https://projectsa.ink">Log In here</a>
-    </p>
+    <p>Already have an account? <a href="https://projectsa.ink">Log In here</a></p>
   </div>
-
-  <!-- Hidden Secure execution pipeline frame that passes right through browser VPN filters -->
-  <iframe name="hidden-bridge-iframe" id="hidden-bridge-iframe" class="hidden"></iframe>
 
   <script>
     const PROJECT_ID = "hyprnlxarrmzbubdkuk";
@@ -39,54 +29,54 @@
 
     const statusDiv = document.getElementById('status');
     const submitBtn = document.getElementById('submit-btn');
-    const signupForm = document.getElementById('signup-form');
 
-    signupForm.addEventListener('submit', (e) => {
-      // 1. Temporarily pause default browser page-refresh loops
+    document.getElementById('signup-form').addEventListener('submit', async (e) => {
       e.preventDefault();
-      
       submitBtn.disabled = true;
-      statusDiv.textContent = "Connecting straight to Supabase cloud...";
+      statusDiv.textContent = "Pushing account data to Supabase database...";
       statusDiv.style.color = "black";
 
       const username = document.getElementById('signup-username').value.trim().toLowerCase();
       const password = document.getElementById('signup-password').value;
       const syntheticEmail = `${username}@projectsa.ink`;
 
-      // 2. Set the target destination URL on the native form structure
-      signupForm.action = `https://${PROJECT_ID}.supabase.co/auth/v1/signup`;
+      const targetEndpoint = `https://${PROJECT_ID}.supabase.co/auth/v1/signup`;
+      
+      // The JSONP bridge wrapper string
+      const proxyUrl = `https://allorigins.win{encodeURIComponent(targetEndpoint)}`;
 
-      // 3. Dynamically inject the structural validation keys into the payload fields
-      let keyInput = document.getElementById('supabase-api-hidden-key');
-      if (!keyInput) {
-        keyInput = document.createElement('input');
-        keyInput.type = 'hidden';
-        keyInput.id = 'supabase-api-hidden-key';
-        keyInput.name = 'email'; // Maps parameters directly to Supabase REST engine requirements
-        signupForm.appendChild(keyInput);
+      try {
+        const response = await fetch(proxyUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          body: new URLSearchParams({
+            'apikey': SUPABASE_KEY,
+            'email': syntheticEmail,
+            'password': password
+          })
+        });
+
+        if (!response.ok) throw new Error("Database carrier dropped connection pipeline.");
+        
+        const wrapper = await response.json();
+        const data = JSON.parse(wrapper.contents);
+
+        if (data.error || data.error_description || data.message) {
+          throw new Error(data.error_description || data.error || data.message || "Registration failed");
+        }
+
+        statusDiv.textContent = "Success! Account saved to Supabase cloud. Redirecting...";
+        statusDiv.style.color = "green";
+        
+        setTimeout(() => {
+          window.location.href = "https://projectsa.ink";
+        }, 1500);
+
+      } catch (error) {
+        statusDiv.textContent = "Signup Error: " + error.message;
+        statusDiv.style.color = "red";
+        submitBtn.disabled = false;
       }
-      keyInput.value = syntheticEmail;
-
-      let passInput = document.getElementById('supabase-api-hidden-pass');
-      if (!passInput) {
-        passInput = document.createElement('input');
-        passInput.type = 'hidden';
-        passInput.id = 'supabase-api-hidden-pass';
-        passInput.name = 'password';
-        signupForm.appendChild(passInput);
-      }
-      passInput.value = password;
-
-      // 4. Force standard HTML form transmission over the hidden iframe document pipeline
-      signupForm.submit();
-
-      // 5. Provide immediate optimistic feedback and trigger the redirect to your login path
-      statusDiv.textContent = "Success! Account forced to Supabase. Redirecting to login...";
-      statusDiv.style.color = "green";
-
-      setTimeout(() => {
-        window.location.href = "https://projectsa.ink/login";
-      }, 1500);
     });
   </script>
 </body>
