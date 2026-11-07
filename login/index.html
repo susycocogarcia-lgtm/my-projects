@@ -4,54 +4,94 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Login</title>
+  
+  <!-- High-Performance Optimization: Warm up SSL/TLS handshake with Supabase immediately -->
+  <link rel="preconnect" href="https://supabase.co" crossorigin>
+  <link rel="dns-prefetch" href="https://supabase.co">
+
   <style>
     .hidden { display: none; }
+    
+    /* Clean, unstyled container layout helper */
+    #status-container {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 15px;
+      min-height: 24px;
+    }
+
+    /* CSS Animated Progress Spinner Wheel */
+    .spinner {
+      width: 16px;
+      height: 16px;
+      border: 2px solid #f3f3f3;
+      border-top: 2px solid #0070f3;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      display: inline-block;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
   </style>
 </head>
 <body>
 
-  <!-- Status notifications appear here -->
-  <div id="status"></div>
+  <!-- Status Notification Container with Embedded Progress Wheel Slot -->
+  <div id="status-container">
+    <div id="loading-spinner" class="spinner hidden"></div>
+    <div id="status"></div>
+  </div>
 
   <!-- LOGIN SCREEN -->
   <div id="auth-container">
     <h2>Login</h2>
     <form id="login-form">
-      <input type="text" id="login-username" placeholder="Username" required />
-      <input type="password" id="login-password" placeholder="Password" required />
-      <button type="submit">Submit</button>
+      <input type="text" id="login-username" placeholder="Username" required autocomplete="username" />
+      <input type="password" id="login-password" placeholder="Password" required autocomplete="current-password" />
+      <button type="submit" id="submit-btn">Submit</button>
     </form>
     
     <p>
-      no account? <a href="https://projectsa.ink/signup">sign up</a>
+      no account? <a href="https://projectsa.ink">sign in</a>
     </p>
   </div>
 
-  <!-- Direct file path to prevent Firefox MIME type blocking -->
+  <!-- Strict explicit production script path for optimal caching and Firefox compatibility -->
   <script src="https://jsdelivr.net"></script>
   
   <script>
-    // 1. Initialize Supabase Client Connection
+    // 1. Initialize Supabase Connection Keys
     const SUPABASE_URL = "https://supabase.co"; 
     const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh5cHJubHhhcnJtemJidWJka3VrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTQwMDc0MjcsImV4cCI6MjEwOTU4MzQyN30.p24H1MA2hxCmqElSNgOlDWwhQosXylOrZrLbsbrhVQo"; 
 
+    const statusDiv = document.getElementById('status');
+    const spinnerElement = document.getElementById('loading-spinner');
+    const submitBtn = document.getElementById('submit-btn');
+
     if (typeof window.supabase === 'undefined') {
-        document.getElementById('status').textContent = "Connection Error: Script blocked by browser security.";
-        document.getElementById('status').style.color = "red";
+        statusDiv.textContent = "Connection Error: Script blocked by browser security.";
+        statusDiv.style.color = "red";
     } else {
         const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-        const statusDiv = document.getElementById('status');
 
-        // Automatically route to clean dashboard path if user session is valid
+        // Persistent Auth Observer Routing Loop
         supabase.auth.onAuthStateChange((event, session) => {
           if (session) {
             window.location.href = "/dashboard";
           }
         });
 
-        // Handle Form Submission
+        // 2. High-Speed API Form Submission Handling Logic
         document.getElementById('login-form').addEventListener('submit', async (e) => {
           e.preventDefault();
+          
+          // Trigger instant visual state changes (Disable double clicking & reveal progress wheel)
+          submitBtn.disabled = true;
+          spinnerElement.classList.remove('hidden');
           statusDiv.textContent = "Logging in...";
           statusDiv.style.color = "black";
 
@@ -59,14 +99,18 @@
           const password = document.getElementById('login-password').value;
           const syntheticEmail = `${username}@projectsa.ink`;
 
+          // Post structural login packet directly across warmed-up pipeline
           const { data, error } = await supabase.auth.signInWithPassword({
             email: syntheticEmail,
             password: password
           });
 
           if (error) {
+            // Error handling loop: tear down loading state loop to invite user adjustments
+            spinnerElement.classList.add('hidden');
             statusDiv.textContent = "Login Error: " + error.message;
             statusDiv.style.color = "red";
+            submitBtn.disabled = false;
           } else if (data && data.session) {
             window.location.href = "/dashboard";
           }
@@ -75,4 +119,3 @@
   </script>
 </body>
 </html>
-
