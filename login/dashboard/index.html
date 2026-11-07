@@ -4,67 +4,50 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Dashboard</title>
-  <style>
-    .hidden { display: none; }
-  </style>
 </head>
 <body>
 
+  <!-- Main visible dashboard workspace -->
   <div id="dashboard-container">
-    <h2>Dashboard</h2>
+    <h2>Welcome to your Dashboard</h2>
     
-    <div>
+    <div style="border: 1px solid #ccc; padding: 20px; max-width: 300px; margin-top: 20px;">
       <h3>Account Management</h3>
-      
-      <div>
-        <span>Profile Icon: </span>
-        <span id="avatar-letter">?</span>
-      </div>
-      
-      <div>
-        <span>Username:</span>
-        <span id="user-display">---</span>
-      </div>
-      
-      <div>
-        <span>Status:</span>
-        <span>Active</span>
-      </div>
-
-      <div>
-        <span>claim projectsa.ink installer code</span>
-      </div>
-
-      <a href="https://projectsa.ink/login/signout"><button id="logout-btn">Log Out</button></a>
+      <p><strong>Username:</strong> <span id="user-display">Loading...</span></p>
+      <p><strong>Status:</strong> <span style="color: green;">Active</span></p>
+      <button id="logout-btn">Log Out</button>
     </div>
   </div>
-  <script src="https://unpkg.com"></script>
-  
+
   <script>
-    const SUPABASE_URL = "https://supabase.co"; 
-    const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh5cHJubHhhcnJtemJidWJka3VrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTQwMDc0MjcsImV4cCI6MjEwOTU4MzQyN30.p24H1MA2hxCmqElSNgOlDWwhQosXylOrZrLbsbrhVQo"; 
+    const PROJECT_ID = "hyprnlxarrmzbubdkuk";
 
-    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
-    const userDisplay = document.getElementById('user-display');
-    const avatarLetter = document.getElementById('avatar-letter');
-
-    supabase.auth.onAuthStateChange((event, session) => {
-      if (!session) {
-        window.location.href = "/";
-      } else {
-        const fullEmail = session.user.email || "";
+    // 1. Instantly check if the user is allowed to be here
+    const savedTokenData = localStorage.getItem(`sb-${PROJECT_ID}-auth-token`);
+    
+    if (!savedTokenData) {
+      // Not logged in? Boot them straight back to the main login root page
+      window.location.href = "/";
+    } else {
+      try {
+        const session = JSON.parse(savedTokenData);
+        
+        // Extract the clean username from the synthetic email string
+        const fullEmail = session.user?.email || session.email || "";
         const username = fullEmail.includes('@') ? fullEmail.split('@')[0] : fullEmail;
         
-        userDisplay.textContent = username;
-        if (username.length > 0) {
-          avatarLetter.textContent = username.charAt(0).toUpperCase();
-        }
+        // Render it to the screen text elements
+        document.getElementById('user-display').textContent = username;
+      } catch (error) {
+        // If the token data is broken or corrupted, clear it and redirect to login
+        localStorage.removeItem(`sb-${PROJECT_ID}-auth-token`);
+        window.location.href = "/";
       }
-    });
+    }
 
-    document.getElementById('logout-btn').addEventListener('click', async () => {
-      await supabase.auth.signOut();
+    // 2. Handle Logging Out cleanly
+    document.getElementById('logout-btn').addEventListener('click', () => {
+      localStorage.removeItem(`sb-${PROJECT_ID}-auth-token`);
       window.location.href = "/";
     });
   </script>
