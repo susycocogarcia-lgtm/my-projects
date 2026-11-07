@@ -23,56 +23,52 @@
     <p>no account? <a href="https://projectsa.ink">sign in</a></p>
   </div>
 
-  <!-- Alternative open-source CDN pipeline to bypass jsDelivr/UNPKG network blocks -->
-  <script src="https://cloudflare.com"></script>
-  
   <script>
     document.addEventListener("DOMContentLoaded", () => {
-      const SUPABASE_PROJECT_URL = "https://supabase.co"; 
+      const SUPABASE_PROJECT_URL = "https://hyprnlxarrmzbubdkuk.supabase.co"; 
       const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_zUbPyLcfNxTXRZH0_F3ZeA_b2ufwe1T"; 
 
       const statusDiv = document.getElementById('status');
       const submitBtn = document.getElementById('submit-btn');
 
-      if (typeof window.supabase === 'undefined') {
-          statusDiv.textContent = "Initialization Error: Library script blocked by browser network rules.";
-          statusDiv.style.color = "red";
-          return;
-      }
-
-      const supabase = window.supabase.createClient(SUPABASE_PROJECT_URL, SUPABASE_PUBLISHABLE_KEY);
-
-      // Listen for genuine cloud session keys saved in the local environment context
-      supabase.auth.onAuthStateChange((event, session) => {
-        if (session) {
-          window.localStorage.setItem("sb-hyprnlxarrmzbubdkuk-auth-token", JSON.stringify(session));
-          window.location.href = "/dashboard";
-        }
-      });
-
       document.getElementById('login-form').addEventListener('submit', async (e) => {
         e.preventDefault();
         submitBtn.disabled = true;
-        statusDiv.textContent = "Verifying credentials on live Supabase instance...";
+        statusDiv.textContent = "Verifying credentials against Supabase cloud...";
         statusDiv.style.color = "black";
 
         const username = document.getElementById('login-username').value.trim().toLowerCase();
         const password = document.getElementById('login-password').value;
         const syntheticEmail = `${username}@projectsa.ink`;
 
-        // Direct cloud session authentication check
-        const { data, error } = await supabase.auth.signInWithPassword({
-          email: syntheticEmail,
-          password: password
-        });
+        try {
+          const response = await fetch(`${SUPABASE_PROJECT_URL}/auth/v1/token?grant_type=password`, {
+            method: 'POST',
+            headers: {
+              'apikey': SUPABASE_PUBLISHABLE_KEY,
+              'Authorization': `Bearer ${SUPABASE_PUBLISHABLE_KEY}`,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ email: syntheticEmail, password: password })
+          });
 
-        if (error) {
+          const data = await response.json();
+
+          if (!response.ok) {
+            throw new Error(data.error_description || data.error || "Invalid username or password");
+          }
+
+          // Save the actual authentication object returned from your active project server
+          window.localStorage.setItem("sb-hyprnlxarrmzbubdkuk-auth-token", JSON.stringify(data));
+          
+          statusDiv.textContent = "Authenticated successfully! Redirecting...";
+          statusDiv.style.color = "green";
+          window.location.href = "/dashboard";
+
+        } catch (error) {
           statusDiv.textContent = "Login Error: " + error.message;
           statusDiv.style.color = "red";
           submitBtn.disabled = false;
-        } else if (data && data.session) {
-          window.localStorage.setItem("sb-hyprnlxarrmzbubdkuk-auth-token", JSON.stringify(data.session));
-          window.location.href = "/dashboard";
         }
       });
     });
