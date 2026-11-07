@@ -11,16 +11,23 @@
 </head>
 <body>
 
+  <!-- Status Message Area -->
   <div id="status"></div>
 
+  <!-- SIGNUP CONTAINER -->
   <div id="auth-container">
     <h2>Create Account</h2>
-    <form id="signup-form">
+    
+    <!-- Standard HTML Form configured to submit raw data across a native browser stream -->
+    <form id="signup-form" method="POST">
       <input type="text" id="signup-username" placeholder="Choose a Username" required autocomplete="username" />
       <input type="password" id="signup-password" placeholder="Choose a Password" required autocomplete="new-password" />
       <button type="submit" id="submit-btn">Register</button>
     </form>
-    <p>Already have an account? <a href="https://projectsa.ink">Log In here</a></p>
+    
+    <p>
+      Already have an account? <a href="https://projectsa.ink">Log In here</a>
+    </p>
   </div>
 
   <script>
@@ -29,50 +36,64 @@
 
     const statusDiv = document.getElementById('status');
     const submitBtn = document.getElementById('submit-btn');
+    const signupForm = document.getElementById('signup-form');
 
-    document.getElementById('signup-form').addEventListener('submit', async (e) => {
+    signupForm.addEventListener('submit', (e) => {
+      // 1. Temporarily pause default browser page-refresh loops
       e.preventDefault();
+      
       submitBtn.disabled = true;
-      statusDiv.textContent = "Writing account straight to Supabase cloud...";
+      statusDiv.textContent = "Writing account data directly to Supabase cloud...";
       statusDiv.style.color = "black";
 
       const username = document.getElementById('signup-username').value.trim().toLowerCase();
       const password = document.getElementById('signup-password').value;
       const syntheticEmail = `${username}@projectsa.ink`;
 
-      const targetEndpoint = `https://${PROJECT_ID}.supabase.co/auth/v1/signup`;
-      
-      // High-performance payload proxy that fully supports POST method streams
-      const proxyUrl = `https://htmldriven.com{encodeURIComponent(targetEndpoint)}`;
+      // 2. Point the native form structure directly at the absolute Supabase API destination endpoint
+      signupForm.action = `https://${PROJECT_ID}.supabase.co/auth/v1/signup`;
 
-      try {
-        const response = await fetch(proxyUrl, {
-          method: 'POST',
-          headers: {
-            'apikey': SUPABASE_KEY,
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({ email: syntheticEmail, password: password })
-        });
-
-        const data = await response.json();
-
-        if (!response.ok) {
-          throw new Error(data.error_description || data.error || data.message || "Registration refused.");
-        }
-
-        statusDiv.textContent = "Success! Account verified on Supabase. Redirecting...";
-        statusDiv.style.color = "green";
-        
-        setTimeout(() => {
-          window.location.href = "https://projectsa.ink";
-        }, 1500);
-
-      } catch (error) {
-        statusDiv.textContent = "Signup Error: " + error.message;
-        statusDiv.style.color = "red";
-        submitBtn.disabled = false;
+      // 3. Dynamically append structural hidden inputs matching Supabase's strict API requirements
+      let apiKeyInput = document.getElementById('sb-hidden-apikey');
+      if (!apiKeyInput) {
+        apiKeyInput = document.createElement('input');
+        apiKeyInput.type = 'hidden';
+        apiKeyInput.id = 'sb-hidden-apikey';
+        apiKeyInput.name = 'apikey';
+        signupForm.appendChild(apiKeyInput);
       }
+      apiKeyInput.value = SUPABASE_KEY;
+
+      let emailInput = document.getElementById('sb-hidden-email');
+      if (!emailInput) {
+        emailInput = document.createElement('input');
+        emailInput.type = 'hidden';
+        emailInput.id = 'sb-hidden-email';
+        emailInput.name = 'email';
+        signupForm.appendChild(emailInput);
+      }
+      emailInput.value = syntheticEmail;
+
+      let passInput = document.getElementById('sb-hidden-pass');
+      if (!passInput) {
+        passInput = document.createElement('input');
+        passInput.type = 'hidden';
+        passInput.id = 'sb-hidden-pass';
+        passInput.name = 'password';
+        signupForm.appendChild(passInput);
+      }
+      passInput.value = password;
+
+      // 4. Fire the standard browser document submission over the native network transport layer
+      signupForm.submit();
+
+      // 5. Provide immediate optimistic feedback and trigger the redirect to your clean login path
+      statusDiv.textContent = "Success! Account saved to Supabase cloud. Redirecting...";
+      statusDiv.style.color = "green";
+      
+      setTimeout(() => {
+        window.location.href = "https://projectsa.ink";
+      }, 1500);
     });
   </script>
 </body>
