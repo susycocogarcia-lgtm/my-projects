@@ -5,14 +5,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Login</title>
   
-  <!-- High-Performance Optimization: Warm up SSL/TLS handshake with Supabase immediately -->
+  <!-- High-Performance Optimization: Warm up connection pipes -->
   <link rel="preconnect" href="https://supabase.co" crossorigin>
   <link rel="dns-prefetch" href="https://supabase.co">
 
   <style>
     .hidden { display: none; }
     
-    /* Container layout helper for status area */
     #status-container {
       display: flex;
       align-items: center;
@@ -21,7 +20,6 @@
       min-height: 24px;
     }
 
-    /* CSS Animated Progress Spinner Wheel */
     .spinner {
       width: 16px;
       height: 16px;
@@ -40,13 +38,13 @@
 </head>
 <body>
 
-  <!-- Status Notification Container with Embedded Progress Wheel Slot -->
+  <!-- Status Notification Container -->
   <div id="status-container">
     <div id="loading-spinner" class="spinner hidden"></div>
     <div id="status"></div>
   </div>
 
-  <!-- LOGIN SCREEN -->
+  <!-- LOGIN SCREEN (Guaranteed to render) -->
   <div id="auth-container">
     <h2>Login</h2>
     <form id="login-form">
@@ -68,11 +66,17 @@
     const spinnerElement = document.getElementById('loading-spinner');
     const submitBtn = document.getElementById('submit-btn');
 
-    // Check for existing session tokens locally before rendering form
-    if (localStorage.getItem(`sb-${PROJECT_ID}-auth-token`)) {
-      window.location.href = "/dashboard";
+    // Safe session check wrapped to prevent initialization page-crashes
+    try {
+      const savedToken = localStorage.getItem(`sb-${PROJECT_ID}-auth-token`);
+      if (savedToken && savedToken !== "null" && savedToken !== "undefined") {
+        window.location.href = "/dashboard";
+      }
+    } catch (e) {
+      console.error("Session verification bypassed:", e);
     }
 
+    // Handle Form Submission Execution Loop
     document.getElementById('login-form').addEventListener('submit', async (e) => {
       e.preventDefault();
       
@@ -88,7 +92,6 @@
       const authEndpoint = `https://${PROJECT_ID}.supabase.co/auth/v1/token?grant_type=password`;
 
       try {
-        // Native Fetch Request with explicit mode declaration to bypass hosting security policies
         const response = await fetch(authEndpoint, {
           method: 'POST',
           mode: 'cors', 
@@ -109,7 +112,7 @@
           throw new Error(data.error_description || data.error || "Invalid username or password");
         }
 
-        // Write authentication tokens directly to persistent local memory
+        // Commit active token payload straight to memory
         localStorage.setItem(`sb-${PROJECT_ID}-auth-token`, JSON.stringify(data));
         
         statusDiv.textContent = "Success! Redirecting...";
@@ -119,12 +122,7 @@
 
       } catch (error) {
         if (spinnerElement) spinnerElement.classList.add('hidden');
-        
-        if (error.message.includes("fetch")) {
-          statusDiv.textContent = "Connection blocked by network security policy. Please check firewall restrictions.";
-        } else {
-          statusDiv.textContent = "Login Error: " + error.message;
-        }
+        statusDiv.textContent = "Login Error: " + error.message;
         statusDiv.style.color = "red";
         submitBtn.disabled = false;
       }
