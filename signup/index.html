@@ -1,17 +1,39 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>signup | projectsa.ink</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sign Up</title>
+  <style>
+    body { font-family: sans-serif; max-width: 350px; margin: 80px auto; padding: 25px; border: 1px solid #ddd; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+    h2 { margin-bottom: 20px; text-align: center; }
+    form { display: flex; flex-direction: column; gap: 12px; }
+    input, button { padding: 10px; font-size: 16px; border: 1px solid #ccc; border-radius: 4px; }
+    button { background-color: #10b981; color: white; border: none; cursor: pointer; font-weight: bold; }
+    button:hover { background-color: #059669; }
+    .footer-text { margin-top: 15px; text-align: center; font-size: 14px; color: #555; }
+    .footer-text a { color: #10b981; text-decoration: none; }
+    .footer-text a:hover { text-decoration: underline; }
+    #status { font-size: 14px; text-align: center; margin-bottom: 15px; font-weight: bold; }
+  </style>
 </head>
 <body>
-    <h1>signup</h1>
-    <form>
-        <input placeholder="username">
-        <input placeholder="password">
-    </form>
-    <button>submit</button>
-    <a href="https://projectsa.ink/login"><P>have a account? login</P></a>
+
+  <h2>Create Account</h2>
+  <div id="status"></div>
+
+  <form id="signup-form">
+    <input type="text" id="signup-username" placeholder="Choose a Username" required />
+    <input type="password" id="signup-password" placeholder="Choose a Password" required />
+    <button type="submit">Register</button>
+  </form>
+  
+  <p class="footer-text">
+    Already have an account? <a href="index.html">Log In here</a>
+  </p>
+
+  <!-- Load Supabase from CDN & Signup Logic -->
+  <script src="https://jsdelivr.net"></script>
+  <script src="signup.js"></script>
 </body>
 </html>
