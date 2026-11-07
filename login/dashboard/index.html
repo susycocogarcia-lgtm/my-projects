@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard</title>
+  <style>
+    .hidden { display: none; }
+  </style>
+</head>
+<body>
+
+  <div id="dashboard-container">
+    <h2>Dashboard</h2>
+    
+    <div>
+      <h3>Account Management</h3>
+      
+      <div>
+        <span>Profile Icon: </span>
+        <span id="avatar-letter">?</span>
+      </div>
+      
+      <div>
+        <span>Username:</span>
+        <span id="user-display">---</span>
+      </div>
+      
+      <div>
+        <span>Status:</span>
+        <span>Active</span>
+      </div>
+
+      <div>
+        <span>Provider:</span>
+        <span>Supabase Auth</span>
+      </div>
+
+      <button id="logout-btn">Log Out</button>
+    </div>
+  </div>
+
+  <script src="https://unpkg.com"></script>
+  
+  <script>
+    const SUPABASE_URL = "https://supabase.co"; 
+    const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh5cHJubHhhcnJtemJidWJka3VrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTQwMDc0MjcsImV4cCI6MjEwOTU4MzQyN30.p24H1MA2hxCmqElSNgOlDWwhQosXylOrZrLbsbrhVQo"; 
+
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    const userDisplay = document.getElementById('user-display');
+    const avatarLetter = document.getElementById('avatar-letter');
+
+    supabase.auth.onAuthStateChange((event, session) => {
+      if (!session) {
+        window.location.href = "/";
+      } else {
+        const fullEmail = session.user.email || "";
+        const username = fullEmail.includes('@') ? fullEmail.split('@')[0] : fullEmail;
+        
+        userDisplay.textContent = username;
+        if (username.length > 0) {
+          avatarLetter.textContent = username.charAt(0).toUpperCase();
+        }
+      }
+    });
+
+    document.getElementById('logout-btn').addEventListener('click', async () => {
+      await supabase.auth.signOut();
+      window.location.href = "/";
+    });
+  </script>
+</body>
+</html>
